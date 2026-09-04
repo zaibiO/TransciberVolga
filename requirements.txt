@@ -1,0 +1,23 @@
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+python-multipart==0.0.20
+
+# Background tasks
+celery==5.4.0
+redis==5.2.1
+
+# Transcription
+faster-whisper==1.1.1
+# Required at runtime by faster-whisper/huggingface_hub (model download/loading).
+requests==2.32.3
+
+# Audio processing (requires system FFmpeg)
+pydub==0.25.1
+
+# Database
+SQLAlchemy==2.0.36
+
+# Pinned <2 to avoid compatibility issues across the
+# faster-whisper / onnxruntime / ctranslate2 stack.
+numpy==1.26.4

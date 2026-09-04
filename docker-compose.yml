@@ -1,0 +1,48 @@
+# Orchestration for the transcription pipeline.
+#
+#   redis:  broker + result backend for Celery
+#   web:    FastAPI REST API (uvicorn)
+#   worker: Celery worker that runs the transcription tasks
+#
+# ``web`` and ``worker`` share the ./storage volume so both can read/write the
+# same audio files, result JSON files and SQLite database.
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      STORAGE_DIR: /app/storage
+      WHISPER_MODEL: ${WHISPER_MODEL:-base}
+    volumes:
+      - ./storage:/app/storage
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: celery -A app.tasks worker --loglevel=info
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      STORAGE_DIR: /app/storage
+      WHISPER_MODEL: ${WHISPER_MODEL:-base}
+    volumes:
+      - ./storage:/app/storage
+    depends_on:
+      redis:
+        condition: service_healthy

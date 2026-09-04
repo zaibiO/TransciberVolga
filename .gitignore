@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Runtime artifacts
+storage/audio/*
+storage/results/*
+storage/*.db
+!storage/audio/.gitkeep
+!storage/results/.gitkeep
